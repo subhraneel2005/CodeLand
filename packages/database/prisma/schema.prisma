@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @unique @default(cuid())
+  username  String   @unique
+  password  String
+  avatarId  String
+  avatar    Avatar   @relation(fields: [avatarId], references: [id])
+  adminOf   Space[]  @relation("SpaceAdmin")
+  memberOf  Space[]  @relation("SpaceMember")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Space {
+  id                String    @id @unique @default(cuid())
+  name              String    @unique
+  spaceThumbnailUrl String?
+  type              SpaceType
+  members           User[]    @relation("SpaceMember")
+  adminId           String
+  admin             User      @relation("SpaceAdmin", fields: [adminId], references: [id])
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model Avatar {
+  id        String @id @unique @default(cuid())
+  avatarUrl String
+  users     User[]
+  name      String
+}
+
+enum SpaceType {
+  PUBLIC
+  PRIVATE
+}

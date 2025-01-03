@@ -7,6 +7,7 @@
 //     6. DELETE /api/v1/user/profile/:id //delete the user profile
 
 import { Router } from "express";
+import client from "@repo/db/client"
 
 export const userRouter = Router();
 
