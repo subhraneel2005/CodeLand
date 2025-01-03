@@ -1,13 +1,12 @@
 //  User API Endpoints:
-//     1. POST /api/v1/user/signup        //create a new user
-//     2. POST /api/v1/user/signin        //login the user
-//     3. GET /api/v1/user/logout         //delete the token
-//     4. GET /api/v1/user/profile/:id    //get the user profile
-//     5. PUT /api/v1/user/profile/:id    //update the user profile
-//     6. DELETE /api/v1/user/profile/:id //delete the user profile
-
+//     1. POST /api/v1/user/signup        //create a new user ✅
+//     2. POST /api/v1/user/signin        //login the user ✅
+//     3. GET /api/v1/user/logout         //delete the token ✅
+//     4. GET /api/v1/user/profile/:id    //get the user profile ✅
+//     5. PUT /api/v1/user/profile/:id    //update the user's avatar ✅
+//     6. DELETE /api/v1/user/profile/:id //delete the user profile ✅
 import { Router } from "express";
-import { LoginSchema, SignupSchema } from "../../types/index.js";
+import { LoginSchema, SignupSchema, UpdateMetaDataSchema } from "../../types/index.js";
 import client from "@repo/db/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -110,22 +109,89 @@ userRouter.get("/logout", (req, res) => {
     })
 });
 
-userRouter.get("/profile/:id", (req, res) => {
-    res.json({
-        message: "This is the profile route"
-    })
+userRouter.get("/profile/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+        const user = await client.user.findUnique({
+            where: {
+                id: id
+            }
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                message: "User not found"
+            });
+        }
+
+        return res.status(200).json({
+            message: "User profile retrieved successfully",
+            user
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Internal server error"
+        });
+    }
 });
 
-userRouter.put("/profile/:id", (req, res) => {
-    res.json({
-        message: "This is the update profile route"
+userRouter.put("/profile/:id", async(req, res) => {
+    const { id } = req.params;
+    const {avatarId} = UpdateMetaDataSchema.parse(req.body);
+
+    if(!avatarId){
+        res.status(400).json({
+            message: "Please choose an avatar"
+        })
+    }
+
+    if(!id){
+        res.status(400).json({
+            message: "Cannot get userId from params"
+        })
+    }
+    
+    const updatedUserWithAvatar = await client.user.update({
+        where:{
+            id: id
+        },
+        data:{
+            avatarId: avatarId
+        }
     })
+
+    res.status(200).json({
+        message: "User avatar updated successfully",
+        updatedUserWithAvatar
+    })
+    
 });
 
-userRouter.delete("/profile/:id", (req, res) => {
-    res.json({
-        message: "This is the profile delete route"
-    })
+userRouter.delete("/profile/:id", async(req, res) => {
+    
+    const { id } = req.params;
+
+    const findUser = await client.user.findUnique({
+        where:{
+            id: id
+        }
+    });
+
+    if(!findUser){
+        res.status(404).json({
+            message: "User not found"
+        })
+    }
+    else{
+        await client.user.delete({
+            where:{
+                id: id
+            }
+        })
+        res.status(200).json({
+            message: "User deleted successfully"
+        })
+    }
 });
 
 

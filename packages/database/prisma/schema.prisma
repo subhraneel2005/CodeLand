@@ -32,7 +32,7 @@ model Space {
 }
 
 model Avatar {
-  id        String @id @unique @default(cuid())
+  id        String @id @unique @default(cuid()) //10 avatars
   avatarUrl String
   users     User[]
   name      String
