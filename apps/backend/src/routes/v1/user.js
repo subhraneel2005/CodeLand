@@ -10,6 +10,8 @@ import { Router } from "express";
 import { LoginSchema, SignupSchema } from "../../types/index.js";
 import client from "@repo/db/client";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { JWT_PASSWORD } from "../../config.js";
 
 export const userRouter = Router();
 
@@ -82,9 +84,14 @@ userRouter.post("/signin", async(req, res) => {
                 })
             }
 
+            const token = jwt.sign({
+                userId: user.id
+            }, JWT_PASSWORD
+            );
+
             return res.status(200).json({
                 message: "User logged in successfully",
-                userId: user.id
+                token
             })
         } catch (error) {
             res.status(500).json({
@@ -96,8 +103,10 @@ userRouter.post("/signin", async(req, res) => {
 })
 
 userRouter.get("/logout", (req, res) => {
-    res.json({
-        message: "This is the logout route"
+    //invalidating the token by clearing the cookie
+    res.clearCookie("token");
+    res.status(200).json({
+        message: "User logged out successfully"
     })
 });
 
