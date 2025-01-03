@@ -36,7 +36,7 @@ spaceRouter.post("/:id/join", (req, res) => {
 
 });
 
-spaceRouter.post("/:id", (req, res) => {
+spaceRouter.post("/:id/leave", (req, res) => {
 
 });
 
